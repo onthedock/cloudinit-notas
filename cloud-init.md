@@ -6,12 +6,12 @@ La instalación de `cloud-init` en Debian:
 sudo apt install cloud-init
 ```
 
-> Una vez instalado `cloud-init`, cuando la VM arranque, intenta obtener la configuración de `cloud-init` desde algún _datastore_; si no hay ninguno configurado, la VM no arranca (se queda esperando contactar con una URL de AWS por defecto).
+> Una vez instalado `cloud-init`, cuando la VM arranque, intenta obtener la configuración de `cloud-init` desde algún _datasource_; si no hay ninguno configurado, la VM no arranca (se queda esperando contactar con una URL de AWS por defecto).
 
 ## NoCloud
 
 - El volumen con sistema de ficheros `vfat` o `iso9660` debe tener la etiqueta `cidata`.
-- el fichero `meta-data` debe contener la configuración del _datastore_ `ds=nocloud`
+- el fichero `meta-data` debe contener la configuración del _datasource_ `ds=nocloud`
 - el fichero de configuración de usuario `user-data` contendrá la información de las acciones de personalización de la VM.
 
 ### Crear un floppy virtual
@@ -37,7 +37,7 @@ En PowerShell, se puede crear un virtual floppy mediante:
 
 #### Ficheros
 
-En la documentación oficial no queda claro cómo configurar los _datastore_ que usará `cloud-init`; sólo se indica cómo pasar esta configuración como parámetro del kernel durante el arranque, pero no cómo incluirlo en un fichero de configuración.
+En la documentación oficial no queda claro cómo configurar los _datasource_ que usará `cloud-init`; sólo se indica cómo pasar esta configuración como parámetro del kernel durante el arranque, pero no cómo incluirlo en un fichero de configuración.
 
 En función de la fuente consultada, esta información se indica en un fichero u otro.
 
@@ -61,7 +61,7 @@ En función de la fuente consultada, esta información se indica en un fichero u
 
   - 1 [paulgorman.org/technical](https://paulgorman.org/technical/cloud-init.txt.html)
   
-    En la entrada _Cloud-init_ del blog [paulgorman.org/technical](https://paulgorman.org/technical/cloud-init.txt.html) encontramos que la configuración del _datastore_ se realiza en el fichero `/etc/cloud/cloud.cfg`.
+    En la entrada _Cloud-init_ del blog [paulgorman.org/technical](https://paulgorman.org/technical/cloud-init.txt.html) encontramos que la configuración del _datasource_ se realiza en el fichero `/etc/cloud/cloud.cfg`.
   
     En el artículo indica que durante el arranque, antes de que la red esté disponible, `cloud-init` busca _datasources_ locales: un sistema `vfat` o `iso9660` o una URL _mágica_ que suele ser [http://169.254.169.254/meta-data/](http://169.254.169.254/meta-data/)
 
