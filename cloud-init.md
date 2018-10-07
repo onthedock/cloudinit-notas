@@ -6,7 +6,7 @@ La instalación de `cloud-init` en Debian:
 sudo apt install cloud-init
 ```
 
-> Una vez instalado `cloud-init`, cuando la VM arranque, intenta obtener la configuración de `cloud-init` desde algún _datasource_; si no hay ninguno configurado, la VM no arranca (se queda esperando contactar con una URL de AWS por defecto).
+> Una vez instalado `cloud-init`, cuando la VM arranque, intenta obtener la configuración de `cloud-init` desde algún _datasource_; si no hay ninguno configurado, la VM no arranca (se queda esperando contactar con una URL por defecto).
 
 ## NoCloud
 
