@@ -20,10 +20,31 @@ sudo apt install cloud-init
 
 ### Crear el fichero ISO
 
+No existe ningún _cmdlet_ nativo para crear ficheros ISO en PowerShell.
+
+El _script_ proporcionado en la TechNet `New-ISOFile` no me ha funcionado en Windows 10.
+
+La solución ha sido usar la versión para Windows de `mkisofs` del paquete `cdrtools`, que he descargado (junto con las bibliotecas de funciones) de [Cdrtools: Win x86_64 Binaries](https://www.student.tugraz.at/thomas.plank/index_en.html).
+
+El binario de `mkisofs` se encuentra en una carpeta llamada `cdrtools`. Desde esta carpeta, ejecutamos:
+
+```shell
+mkisofs.exe -volid cidata -joliet -rational-rock -iso-level 2 -output ..\initv3.iso ..\initimg
+```
+
+- `-volid` especifica el volumen de la ISO
+- `-output` especifica la ruta y nombre del fichero ISO generado
+- `-joliet` especifica extensiones para usar nombres UCS-2 en Juliet
+- `-rational-rock`
+- `-iso-level` 2 (especifica el nivel de ISO 9660)
+
+`cloud-init` se ejecuta en cada arranque. Si no encuentra _datasource_ de configuración local intenta buscarlo en red, lo que bloquea el arranque. Para evitar que `cloud-init` se ejecute en cada arranque, al final de la configuración creamos el fichero  `/etc/cloud/cloud-init.disabled`. Si `cloud-init` encuentra este fichero, no se ejecuta.
 
 #### Ficheros
 
 - `meta-data`
+
+Parece que no es necesario especificar nada en este fichero. He realizado una prueba con el hostname y tiene prioridad el hostname especificado en el fichero user-data.
 
   ```txt
   ds: nocloud
@@ -31,10 +52,19 @@ sudo apt install cloud-init
   local-hostname: cloudinit-vm01
   ```
 
+En el fichero `meta-data` podemos especificar la configuración de una IP estática. La información recogida se guarda en `/etc/network/interfaces.d/50-cloud-init.cfg`. Si no reiniciamos el equipo, tenemos dos IPs asignadas, la obtenida por DHCP (por la configuración en `/etc/network/interfaces`) y la estática.
+
 - `user-data`
+
+Especificando el nombre del hostname en este fichero, se establece correctamente pero no se actualiza el fichero `/etc/hosts`, lo que genera errores indicando que no se identifica el nombre de la máquina.
+
+> La solución pasa por usar el módulo: `manage_etc_hosts: true`, lo que actualiza el fichero `/etc/hosts`.
+> En el fichero `/etc/hosts` también encontramos una entrada para el _hostname_ especificado en el fichero `meta-data`, asociado a `127.0.0.1 vm-meta-hostname.localdomain`.
 
   ```txt
   #cloud-config
+  # TBD
+  #touch /etc/cloud/cloud-init.disabled # Disable cloud-init after first boot
   ```
 
 - `cloud-config`
@@ -74,3 +104,54 @@ sudo apt install cloud-init
 Usando un CD como medio de configuración, ha funcionado a la primera.
 
 `cloud-init` se ejecuta en cada arranque, así que hay que encargarse de deshabilitarlo después de la primera configuración (porque si se elimina el CD con la configuración, se vuelve a quedar encallado durante el arranque).
+
+> Debo revisar la documentación porque parece que podrían colocarse los ficheros de configuración en la carpeta `scripts/perboot`
+>
+> Tengo pendiente probar a lanzar una VM usando alguna de las _cloud images_ proporcionadas por Ubuntu con `cloud-init` ya instalado (p.ej: [https://cloud-images.ubuntu.com/bionic/current/](https://cloud-images.ubuntu.com/bionic/current/)). Se ofrecen en diferentes formatos de disco para hypervisores, entre ellos un disco VHD para Hyper-V.
+
+Como referencia, copio el contenido de los fichero `meta-data` y `user-data` que he estado usando (son _WIP_):
+
+- `user-data`
+
+  ```txt
+  #cloud-config
+  manage_etc_hosts: true
+  hostname: vm-userdata-04
+  fqdn: vm-userdata-04.ameisin.local
+  
+  default:
+  mounts:
+    - [ swap, null ]
+  
+  # package_upgrade: true # Causes an upgrade (apt get upgrade -y)
+  packages: ['figlet']
+  
+  timezone: "Europe/Madrid"
+  
+  runcmd:
+    - /usr/bin/localectl set-keymap ca_ES.ISO-8859-1
+  
+  # users:
+    # - default
+    # - name: operador
+      # groups: sudo
+      # shell: /bin/bash
+      # sudo: ['ALL=(ALL) NOPASSWD:ALL']
+  #write_files:
+  #  - path: /etc/cloud/cloud-init.disabled
+  ```
+
+- `meta-data`
+
+  ```txt
+  local-hostname: vm-meta-04
+  instance-id: cloudimg
+  network-interfaces: |
+    iface eth0 inet static
+    address 192.168.1.199
+    network 192.168.1.0
+    netmask 255.255.255.0
+    broadcast 192.168.1.255
+    gateway 192.168.1.1
+  hostname: ci-meta-data-hostame
+  ```
