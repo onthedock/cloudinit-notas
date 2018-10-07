@@ -16,15 +16,12 @@ sudo apt install cloud-init
 - El fichero de configuración de usuario `user-data` contendrá la información de las acciones de personalización de la VM.
 - El fichero de configuración `meta-data` contiene información sobre el nombre de la instancia, etc.
 
+> Los ficheros de configuración son ficheros en formato YAML.
+
 ### Crear el fichero ISO
 
+
 #### Ficheros
-
-En la documentación oficial no queda claro cómo configurar los _datasource_ que usará `cloud-init`; sólo se indica cómo pasar esta configuración como parámetro del kernel durante el arranque, pero no cómo incluirlo en un fichero de configuración.
-
-En función de la fuente consultada, esta información se indica en un fichero u otro.
-
-`cloud-init` parece estar centrado únicamente en que la configuración se pase a través del `user-data` usando un proveedor _cloud_ y no se describe cómo configurar la aplicación en otros escenarios de _auto-consumo_ donde no hay un proveedor externo (OpenStack no cuenta).
 
 - `meta-data`
 
