@@ -11,27 +11,10 @@ sudo apt install cloud-init
 ## NoCloud
 
 - El volumen con sistema de ficheros `vfat` o `iso9660` debe tener la etiqueta `cidata`.
-- el fichero `meta-data` debe contener la configuración del _datasource_ `ds=nocloud`
-- el fichero de configuración de usuario `user-data` contendrá la información de las acciones de personalización de la VM.
-
-### Crear un floppy virtual
-
-En PowerShell, se puede crear un virtual floppy mediante:
-
-```powershell
-    New-VHD -Path <RutaAlFicheroDelVirtualFloppy>
-    Set-VmFloppyDiskDrive -VMName <nombreVM> -Path <RutaAlFicheroDelVirtualFloppy>
-    Copy-VMFile -SourcePath <nombreFichero> -DestinationPath <RutaAlFicheroEnVM> -FileSourceHost (* Pendiente de testear: primero hay que formatear el disco)
-```
-
-#### Formatear el floppy
-
-```shell
-    # Como root
-    mkfs.vfat -n cidata          # Formateamos el disco
-    mkdir /mnt/floppy            # Creamos el punto de montaje
-    mount /dev/fs0 /mnt/floppy   # Montamos el disco
-```
+- <div style=" text-decoration: line-through;">El fichero `meta-data` debe contener la configuración del _datasource_ `ds=nocloud`</div>
+  - No es necesario: durante el arranque de `cloud-init` inicialmente se buscan los _datasource_ locales, por lo que si están presentes, se usan (incluso antes de que la red esté disponible). También puede cargarse la configuración desde una URL de autoconfiguración, normalmente [http://169.254.169.254/](http://169.254.169.254).
+- El fichero de configuración de usuario `user-data` contendrá la información de las acciones de personalización de la VM.
+- El fichero de configuración `meta-data` contiene información sobre el nombre de la instancia, etc.
 
 ### Crear el fichero ISO
 
