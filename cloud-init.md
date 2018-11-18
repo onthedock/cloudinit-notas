@@ -155,3 +155,54 @@ Como referencia, copio el contenido de los fichero `meta-data` y `user-data` que
     gateway 192.168.1.1
   hostname: ci-meta-data-hostame
   ```
+
+
+## 2018-11-18
+
+El fichero de configuración de `cloud-init` está (en la máquina arrancada con cloud-init) en `/etc/cloud/cloud.cfg`. Revisando el contenido del fichero, aparece un usuario `debian` que efectivamente se encuentra en la máquina y que pertenece a los grupos indicados en el fichero de configuración.
+
+Para poder actualizar el nombre de usuario de la máquina desplegada por cloud-init, es necesario comentar la línea `- update_hostname` en el fichero ect/cloud/cloud.cfg`, ya que en caso contrario se restablecerá al nombre original. Otra opción es eliminar `set_hostname` y `update_hostname` y cambiarlo por `set_hostname_from_dns` para que se establezca el nombre del hostname en función de lo definido en el DNS. [Ref:[Instalación y configuración de cloud-init en Linux](https://www.ibm.com/support/knowledgecenter/es/SSXK2N_1.3.1/com.ibm.powervc.standard.help.doc/powervc_install_cloudinit_hmc.html#powervc_install_cloudinit_hmc__ubuntu)]
+
+En el fichero de configuración `/etc/cloud/cloud.cfg` se establecen _paths_ adicionales para ficheros de _cloud-init_: `/var/lib/cloud` (*cloud_dir*), `/etc/cloud/templates` (*template_dir*) y `/etc/init` (*upstart_dir*).
+
+Para añadir más usuarios durante la configuración inicial del sistema, añadimos una sección de `users` en el fichero `user-data`. Si la primera entrada en la sección `users` es `default`, el usuario `cloud-user` se creará junto al resto de usuarios; en caso contrario, el usuario `cloud-user` no se crea.
+
+```shell
+#cloud-config
+users:
+  - default
+  - name: foobar
+    gecos: User N. Ame
+    selinux-user: staff_u
+    groups: users,wheel
+    ssh_pwauth: True
+    ssh_authorized_keys:
+      - ssh-rsa AA..vz user@domain.com
+...
+```
+
+> Atención , que no puede haber espacios entre los nombres de los grupos a los que pertenece el usuario.
+
+ Si queremos ejecutar comandos en las fases *bootcmd* y/o *runcmd*, podemos añadir una sección al fichero *user-data* para cada uno [Chapter 3. Setting up cloud-init](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux_atomic_host/7/html/installation_and_configuration_guide/setting_up_cloud_init):
+
+```shell
+...
+bootcmd:
+ - echo New MOTD >> /etc/motd
+runcmd:
+ - echo New MOTD2 >> /etc/motd
+...
+```
+
+Para añadir un usuario al grupo de SUDOers:
+
+```shell
+sudo: ["ALL=(ALL) NOPASSWD:ALL"]
+```
+
+Para crear configuración de red estática hay que añadir una sección *network-interfaces* en el fichero `meta-data`. La configuración estática no reinicia la red, por lo que la configuración establecida vía DHCP sigue activa.
+
+
+
+
+```
